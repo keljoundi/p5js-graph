@@ -99,23 +99,17 @@ Graph.prototype.render = function () {
     this.nodes.forEach(function(node){
         //render node connections
         for(var i=0; i<node.connections.length; i++){
-            line(node.x, node.y, node.connections[i].x,node.connections[i].y);
-
-            //var s = node.connections[i].y - node.y / node.connections[i].x - node.x;
-
-            //curved line bewtween points
-            // bezier(node.x, node.y,
-            //     (node.x + node.connections[i].x)/4,(node.y + node.connections[i].y)/4,
-            //     (node.x + node.connections[i].x)*3/4,(node.y + node.connections[i].y)*3/4,
-            //      node.connections[i].x,node.connections[i].y);
-
-            //line(node.x, node.y,
-                //(node.x + node.connections[i].x)/2,(node.y + node.connections[i].y)/2);
-                // line( (node.x + node.connections[i].x)*3/4,(node.y + node.connections[i].y)*3/4,
-                //       node.connections[i].x,node.connections[i].y);
+            //line(node.x, node.y, node.connections[i].x,node.connections[i].y);
+            var controlPoints = that.bezierControlPoints(node,node.connections[i]);
+            noFill();
+            bezier(node.x, node.y,
+                    controlPoints[0].x,controlPoints[0].y,
+                    controlPoints[1].x,controlPoints[1].y,
+                    node.connections[i].x,node.connections[i].y);
 
             //draw arrow along connection line
-            that.renderArrow(node,node.connections[i]);
+            fill(0);
+            that.renderArrow(controlPoints[1],node.connections[i]);
         }
     });
 
@@ -136,4 +130,30 @@ Graph.prototype.renderArrow = function(node1, node2) {
     rotate(angle-HALF_PI);
     triangle(-this.nodeSize*0.25, this.nodeSize, this.nodeSize*0.25, this.nodeSize, 0, this.nodeSize/2);
     pop(); //end drawing state
+}
+
+
+Graph.prototype.bezierControlPoints = function(node1, node2) {
+    //slope
+    var s = node2.y - node1.y / node2.x - node1.x;
+    //find midpoint
+    var mid = createVector((node1.x + node2.x)/2, (node1.y + node2.y)/2);
+    //find 1st quarter point
+    var q1 = createVector((node1.x + mid.x)/2, (node1.y + mid.y)/2);
+    //find 3rd quarter point
+    var q3 = createVector((mid.x + node2.x)/2, (mid.y + node2.y)/2);
+
+    /*
+        add special cases for vertical or near-vertical lines!
+    */
+
+    if(s<0){
+        q1.y -= 15;
+        q3.y -= 15;
+    }else{
+        q1.y += 15;
+        q3.y += 15;
+    }
+
+    return [q1,q3];
 }
