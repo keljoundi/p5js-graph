@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Kasey Eljoundi">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/p5.min.js"></script>
+    <script src="graph_obj.js"></script>
+    <script src="node_obj.js"></script>
+
+    <script>
+        var width;
+        var height;
+        var graph;
+        var nodeCount;
+        var nodePadding;
+        var nodeSize;
+        var distances;
+        var drawn;
+
+        function setup() {
+            width = 800;
+            height = 600;
+            nodeSize = 20;
+            nodePadding = 100;
+            nodeCount = 15;
+
+            createCanvas(width, height);
+            background(200);
+            textAlign(CENTER);
+
+            graph = new Graph(nodeCount);
+            if(drawn = graph.positionNodes()){
+                graph.makeConnections();
+            }else{
+                text("graph could not be rendered, check parameters", width/2, height/2);
+            }
+
+        }
+
+        function draw() {
+
+            if(drawn)
+                graph.render();
+
+        }
+
+        function mousePressed() {
+            //index of pressed node
+            var pressed = -1;
+
+            //for each node in graph
+            for(var i=0; i<graph.nodes.length; i++){
+                //reset fill color
+                graph.nodes[i].unclick();
+                //if dist between mouse and a node is less than radius
+                //  then we have clicked on that node
+                if( dist(graph.nodes[i].x,graph.nodes[i].y,mouseX,mouseY) < nodeSize ){
+                    pressed = i;
+                }
+            }
+            //fire click event for Node
+            if(pressed >= 0)
+                graph.nodes[pressed].click();
+        }
+
+    </script>
+
+</head>
+
+<body>
+
+</body>
+
+</html>
