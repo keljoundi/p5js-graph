@@ -31,13 +31,12 @@
             background(200);
             textAlign(CENTER);
 
-            graph = new Graph(nodeCount);
+            graph = new Graph(nodeCount, nodeSize, nodePadding);
             if(drawn = graph.positionNodes()){
                 graph.makeConnections();
             }else{
                 text("graph could not be rendered, check parameters", width/2, height/2);
             }
-
         }
 
         function draw() {
