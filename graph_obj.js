@@ -1,5 +1,8 @@
-function Graph(nodeCount){
+function Graph(nodeCount, nodeSize, nodePadding){
     this.nodes = [];
+    this.nodeSize = nodeSize;
+    this.arrowSize = nodeSize/2;
+    this.nodePadding = nodePadding;
     //distance matrix
     this.distances = new Array(nodeCount);
 
@@ -18,12 +21,9 @@ Graph.prototype.addNode = function (node) {
 
 Graph.prototype.positionNodes = function () {
     var placements = 0;
-
     var nodes = this.nodes;
 
-    //for each node in graph
     for(var i=0; i<nodes.length; i++){
-
         //place node on map
         nodes[i].positionNode();
         //assume collision to start loop
@@ -32,18 +32,16 @@ Graph.prototype.positionNodes = function () {
         while( collision ){
             //count attempts at placement
             placements++;
-
             //assume no collision
             collision = false;
 
             //check for collisions with every other node
             for(var j=0; j<nodes.length; j++) {
-
                 //do NOT check for distance from self
                 if( i !== j ){
                     var dist_between = dist(nodes[i].x,nodes[i].y, nodes[j].x,nodes[j].y);
                     //check for collision
-                    if(dist_between < nodePadding+nodeSize ){
+                    if(dist_between < this.nodePadding+this.nodeSize ){
                         collision = true;
                         break;
                     }
@@ -58,8 +56,8 @@ Graph.prototype.positionNodes = function () {
             if( collision ) {
                 nodes[i].positionNode();
             }
-
-            if(placements>1000){
+            //return if we have hit our position attempt limit
+            if(placements>10000){
                 return false;
             }
         }
@@ -68,6 +66,7 @@ Graph.prototype.positionNodes = function () {
     //if algorithm has run its course, return "success"
     return true;
 };
+
 
 Graph.prototype.makeConnections = function () {
     //copy distances to make non-destructive
@@ -92,20 +91,49 @@ Graph.prototype.makeConnections = function () {
         }
     }
 };
+
+
 Graph.prototype.render = function () {
     var that = this;
+
     this.nodes.forEach(function(node){
         //render node connections
         for(var i=0; i<node.connections.length; i++){
             line(node.x, node.y, node.connections[i].x,node.connections[i].y);
+
+            //var s = node.connections[i].y - node.y / node.connections[i].x - node.x;
+
+            //curved line bewtween points
+            // bezier(node.x, node.y,
+            //     (node.x + node.connections[i].x)/4,(node.y + node.connections[i].y)/4,
+            //     (node.x + node.connections[i].x)*3/4,(node.y + node.connections[i].y)*3/4,
+            //      node.connections[i].x,node.connections[i].y);
+
+            //line(node.x, node.y,
+                //(node.x + node.connections[i].x)/2,(node.y + node.connections[i].y)/2);
+                // line( (node.x + node.connections[i].x)*3/4,(node.y + node.connections[i].y)*3/4,
+                //       node.connections[i].x,node.connections[i].y);
+
+            //draw arrow along connection line
+            that.renderArrow(node,node.connections[i]);
         }
     });
 
     //render node last to hide line origins
     this.nodes.forEach(function(node) {
         fill(node.fill);
-        ellipse(node.x, node.y, nodeSize, nodeSize);
+        ellipse(node.x, node.y, this.nodeSize, this.nodeSize);
         fill(0);
-        text(node.id, node.x, node.y+nodeSize/4);
+        text(node.id, node.x, node.y+this.nodeSize/4);
     });
 };
+
+
+Graph.prototype.renderArrow = function(node1, node2) {
+    push(); //new drawing state
+    var angle = atan2(node1.y - node2.y, node1.x - node2.x);
+    translate(node2.x, node2.y);
+    rotate(angle-HALF_PI);
+    triangle(-this.nodeSize*0.25, this.nodeSize, this.nodeSize*0.25, this.nodeSize, 0, this.nodeSize/2);
+    pop(); //end drawing state
+}
