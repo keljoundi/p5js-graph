@@ -45,9 +45,22 @@
 
             pt = bezier_(one,two);
 
-            ellipse(pt[0].x,pt[0].y, 50, 50);
-            ellipse(pt[1].x,pt[1].y, 50, 50);
+            ellipse(pt[0].x,pt[0].y, 5, 5);
+            ellipse(pt[1].x,pt[1].y, 5, 5);
 
+
+            q1 = quarterPoint(one,two);
+            ellipse(q1.x,q1.y, 10, 10);
+
+        }
+
+
+
+        function quarterPoint(node1,node2){
+            //find midpoint
+            var mid = createVector((node1.x + node2.x)/2, (node1.y + node2.y)/2);
+            //find 1st quarter point
+            return createVector((node1.x + mid.x)/2, (node1.y + mid.y)/2);
         }
 
 
@@ -68,7 +81,7 @@
             var dy = node1.y - node2.y;
 
             //distance
-            var d = dist(node1, node2);
+            var d = dist(node1.x,node1.y, node2.x,node2.y);
 
             //normalize?
             dx /= d;
