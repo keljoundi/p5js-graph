@@ -1,10 +1,12 @@
-function Graph(nodeCount, nodeSize, nodePadding){
+function Graph(nodeCount, nodeConnections, nodeSize, nodePadding){
     this.nodes = [];
     this.nodeSize = nodeSize;
     this.arrowSize = nodeSize/2;
     this.nodePadding = nodePadding;
+    this.nodeConnections = nodeConnections;
     //distance matrix
     this.distances = new Array(nodeCount);
+    this.connection_matrix = new Array(nodeCount);
 
     //create (int) nodeCount nodes in graph
     for(var i=0; i<nodeCount; i++){
@@ -12,6 +14,8 @@ function Graph(nodeCount, nodeSize, nodePadding){
         this.addNode(new Node(i));
         //make distance matrix 2d
         this.distances[i] = new Array(nodeCount);
+        this.connection_matrix[i] = new Array(nodeCount);
+        this.connection_matrix[i].fill(0);
     }
 }
 
@@ -25,7 +29,8 @@ Graph.prototype.positionNodes = function () {
 
     for(var i=0; i<nodes.length; i++){
         //place node on map
-        nodes[i].positionNode();
+        //nodes[i].positionNode();
+        this.positionNode(nodes[i]);
         //assume collision to start loop
         var collision = true;
 
@@ -54,7 +59,8 @@ Graph.prototype.positionNodes = function () {
 
             //reposition node if necessary
             if( collision ) {
-                nodes[i].positionNode();
+                //nodes[i].positionNode();
+                this.positionNode(nodes[i]);
             }
             //return if we have hit our position attempt limit
             if(placements>10000){
@@ -67,6 +73,11 @@ Graph.prototype.positionNodes = function () {
     return true;
 };
 
+Graph.prototype.positionNode = function (node) {
+    //random position, don't allow node to overlap edge of canvas
+    node.x = random(this.nodeSize/2, width-this.nodeSize/2);
+    node.y = random(this.nodeSize/2, height-this.nodeSize/2);
+}
 
 Graph.prototype.makeConnections = function () {
     //copy distances to make non-destructive
@@ -84,9 +95,11 @@ Graph.prototype.makeConnections = function () {
         distances[i][i] = 999999;
 
         //get next three min distances
-        while( this.nodes[i].connections.length < 3 ){
+        while( this.nodes[i].connections.length < this.nodeConnections ){
             var ind = distances[i].indexOf(Math.min(...distances[i]));
             this.nodes[i].connections.push(this.nodes[ind]);
+            //connection matrix
+            this.connection_matrix[i][ind] = 1;
             distances[i][ind] = 999999;
         }
     }
@@ -99,26 +112,44 @@ Graph.prototype.render = function () {
     this.nodes.forEach(function(node){
         //render node connections
         for(var i=0; i<node.connections.length; i++){
-            //line(node.x, node.y, node.connections[i].x,node.connections[i].y);
-            var controlPoints = that.bezierControlPoints(node,node.connections[i]);
-            noFill();
-            bezier(node.x, node.y,
-                    controlPoints[0].x,controlPoints[0].y,
-                    controlPoints[1].x,controlPoints[1].y,
-                    node.connections[i].x,node.connections[i].y);
+            var connection_id = node.connections[i].id;
 
-            //draw arrow along connection line
-            fill(0);
-            that.renderArrow(controlPoints[1],node.connections[i]);
+            //check for two way direction
+            //console.log(node.id);
+            //console.log(that.connection_matrix[node.id][i]);
+             var two_way = ( that.connection_matrix[node.id][connection_id]) && (that.connection_matrix[connection_id][node.id]);
+
+
+             //console.log(two_way+" - "+node.id+","+i);
+
+            if( two_way ){
+
+                var controlPoints = that.bezierControlPoints(node,node.connections[i]);
+                noFill();
+                bezier(node.x, node.y,
+                        controlPoints[0].x,controlPoints[0].y,
+                        controlPoints[1].x,controlPoints[1].y,
+                        node.connections[i].x,node.connections[i].y);
+                fill(0);
+                that.renderArrow(controlPoints[1],node.connections[i]);
+
+            }else{
+
+                line(node.x, node.y, node.connections[i].x,node.connections[i].y);
+                that.renderArrow(node,node.connections[i]);
+
+            }
+
         }
     });
 
     //render node last to hide line origins
     this.nodes.forEach(function(node) {
         fill(node.fill);
-        ellipse(node.x, node.y, this.nodeSize, this.nodeSize);
+        ellipse(node.x, node.y, that.nodeSize, that.nodeSize);
         fill(0);
-        text(node.id, node.x, node.y+this.nodeSize/4);
+        textSize(that.nodeSize/2);
+        text(node.id, node.x, node.y+that.nodeSize/4);
     });
 };
 
@@ -133,45 +164,9 @@ Graph.prototype.renderArrow = function(node1, node2) {
 }
 
 
-// Graph.prototype.bezierControlPoints = function(node1, node2) {
-//     //slope
-//     var slope = node2.y - node1.y / node2.x - node1.x;
-//     var p_slope = -1 / slope;
-//     //find midpoint
-//     var mid = createVector((node1.x + node2.x)/2, (node1.y + node2.y)/2);
-//     //find 1st quarter point
-//     var q1 = createVector((node1.x + mid.x)/2, (node1.y + mid.y)/2);
-//     //find 3rd quarter point
-//     var q3 = createVector((mid.x + node2.x)/2, (mid.y + node2.y)/2);
-//
-//     /*
-//         add special cases for vertical or near-vertical lines!
-//     */
-//     // if( abs(slope) > 1 ){
-//     //     if(slope<0){
-//     //         q1.x -= 15;
-//     //         q3.x -= 15;
-//     //     }else{
-//     //         q1.x += 15;
-//     //         q3.x += 15;
-//     //     }
-//     // }else{
-//     //     if(slope<0){
-//     //         q1.y += 15;
-//     //         q3.y += 15;
-//     //     }else{
-//     //         q1.y -= 15;
-//     //         q3.y -= 15;
-//     //     }
-//     // }
-//
-//     var q1_ = q1
-//
-//
-//     return [q1,q3];
-// }
-
-
+/*
+https://stackoverflow.com/questions/133897/how-do-you-find-a-point-at-a-given-perpendicular-distance-from-a-line
+*/
 Graph.prototype.bezierControlPoints = function(node1, node2) {
     var control_length = 20;
 
@@ -187,9 +182,8 @@ Graph.prototype.bezierControlPoints = function(node1, node2) {
     //delta X, Y
     var dx = node1.x - node2.x;
     var dy = node1.y - node2.y;
-
     //distance
-    var d = dist(node1, node2);
+    var d = dist(node1.x,node1.y, node2.x,node2.y);
 
     //normalize?
     dx /= d;
