@@ -4,14 +4,11 @@ function Node(id){
     this.connections = [];
     this.fill = 255;
 
+    this.nodeSize = 20;
+
     this.x=0;
     this.y=0;
 }
-Node.prototype.positionNode = function () {
-    //random position, don't allow node to overlap edge of canvas
-    this.x = random(nodeSize/2, width-nodeSize/2);
-    this.y = random(nodeSize/2, height-nodeSize/2);
-};
 Node.prototype.click = function () {
     //change fill color
     this.fill = "rgb(255, 153, 0)";
