@@ -11,27 +11,20 @@
     <script src="node_obj.js"></script>
 
     <script>
-        var width;
-        var height;
         var graph;
-        var nodeCount;
-        var nodePadding;
-        var nodeSize;
-        var distances;
         var drawn;
 
         function setup() {
-            width = 800;
-            height = 600;
-            nodeSize = 20;
-            nodePadding = 100;
-            nodeCount = 15;
+            var nodeSize = 20;
+            var nodePadding = 100;
+            var nodeCount = 15;
+            var nodeConnections = 2;
 
-            createCanvas(width, height);
+            createCanvas(windowWidth, windowHeight);
             background(200);
             textAlign(CENTER);
 
-            graph = new Graph(nodeCount, nodeSize, nodePadding);
+            graph = new Graph(nodeCount, nodeConnections, 40, nodePadding);
             if(drawn = graph.positionNodes()){
                 graph.makeConnections();
             }else{
@@ -40,7 +33,7 @@
         }
 
         function draw() {
-
+            background(200);
             if(drawn)
                 graph.render();
 
@@ -56,7 +49,7 @@
                 graph.nodes[i].unclick();
                 //if dist between mouse and a node is less than radius
                 //  then we have clicked on that node
-                if( dist(graph.nodes[i].x,graph.nodes[i].y,mouseX,mouseY) < nodeSize ){
+                if( dist(graph.nodes[i].x,graph.nodes[i].y,mouseX,mouseY) < graph.nodeSize ){
                     pressed = i;
                 }
             }
