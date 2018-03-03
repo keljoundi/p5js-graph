@@ -133,9 +133,50 @@ Graph.prototype.renderArrow = function(node1, node2) {
 }
 
 
+// Graph.prototype.bezierControlPoints = function(node1, node2) {
+//     //slope
+//     var slope = node2.y - node1.y / node2.x - node1.x;
+//     var p_slope = -1 / slope;
+//     //find midpoint
+//     var mid = createVector((node1.x + node2.x)/2, (node1.y + node2.y)/2);
+//     //find 1st quarter point
+//     var q1 = createVector((node1.x + mid.x)/2, (node1.y + mid.y)/2);
+//     //find 3rd quarter point
+//     var q3 = createVector((mid.x + node2.x)/2, (mid.y + node2.y)/2);
+//
+//     /*
+//         add special cases for vertical or near-vertical lines!
+//     */
+//     // if( abs(slope) > 1 ){
+//     //     if(slope<0){
+//     //         q1.x -= 15;
+//     //         q3.x -= 15;
+//     //     }else{
+//     //         q1.x += 15;
+//     //         q3.x += 15;
+//     //     }
+//     // }else{
+//     //     if(slope<0){
+//     //         q1.y += 15;
+//     //         q3.y += 15;
+//     //     }else{
+//     //         q1.y -= 15;
+//     //         q3.y -= 15;
+//     //     }
+//     // }
+//
+//     var q1_ = q1
+//
+//
+//     return [q1,q3];
+// }
+
+
 Graph.prototype.bezierControlPoints = function(node1, node2) {
+    var control_length = 20;
+
     //slope
-    var s = node2.y - node1.y / node2.x - node1.x;
+    var slope = node2.y - node1.y / node2.x - node1.x;
     //find midpoint
     var mid = createVector((node1.x + node2.x)/2, (node1.y + node2.y)/2);
     //find 1st quarter point
@@ -143,17 +184,25 @@ Graph.prototype.bezierControlPoints = function(node1, node2) {
     //find 3rd quarter point
     var q3 = createVector((mid.x + node2.x)/2, (mid.y + node2.y)/2);
 
-    /*
-        add special cases for vertical or near-vertical lines!
-    */
+    //delta X, Y
+    var dx = node1.x - node2.x;
+    var dy = node1.y - node2.y;
 
-    if(s<0){
-        q1.y -= 15;
-        q3.y -= 15;
+    //distance
+    var d = dist(node1, node2);
+
+    //normalize?
+    dx /= d;
+    dy /= d;
+
+    if( slope ){
+        var control_1 = createVector(q1.x+(control_length*dy), q1.y-(control_length*dx));
+        var control_2 = createVector(q3.x+(control_length*dy), q3.y-(control_length*dx));
     }else{
-        q1.y += 15;
-        q3.y += 15;
+        var control_1 = createVector(q1.x-(control_length*dy), q1.y+(control_length*dx));
+        var control_2 = createVector(q3.x-(control_length*dy), q3.y+(control_length*dx));
     }
 
-    return [q1,q3];
+
+    return [control_1,control_2];
 }
