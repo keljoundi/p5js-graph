@@ -90,7 +90,6 @@ Graph.prototype.makeConnections = function () {
     }
 
     for(var i=0; i<distances.length; i++){
-
         //set self as unreasonably long distance
         distances[i][i] = 999999;
 
@@ -196,7 +195,6 @@ Graph.prototype.bezierControlPoints = function(node1, node2) {
         var control_1 = createVector(q1.x-(control_length*dy), q1.y+(control_length*dx));
         var control_2 = createVector(q3.x-(control_length*dy), q3.y+(control_length*dx));
     }
-
 
     return [control_1,control_2];
 }
